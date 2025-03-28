@@ -1,4 +1,3 @@
-// index.js
 const express = require('express');
 const mongoose = require('mongoose');
 const cors = require('cors');
@@ -22,9 +21,27 @@ mongoose.connect(config.MONGODB_URI)
 app.use(cors());
 app.use(express.json());
 
+// Routes
 app.use('/api/blogs', blogsRouter);
 
-const PORT = config.PORT;
-app.listen(PORT, () => {
-  logger.info(`Server running on port ${PORT}`);
+app.use((error, req, res, next) => {
+  logger.error(error.message);
+  if (error.name === 'CastError' && error.kind === 'ObjectId') {
+    return res.status(400).send({ error: 'malformed id' });
+  }
+  next(error);
 });
+
+app.use((error, req, res, next) => {
+  res.status(500).send({ error: 'Something went wrong!' });
+});
+
+const PORT = config.PORT || 3003;
+
+module.exports = app;
+
+if (process.env.NODE_ENV !== 'test') {
+  app.listen(PORT, () => {
+    logger.info(`Server running on port ${PORT}`);
+  });
+}

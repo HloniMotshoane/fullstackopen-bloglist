@@ -1,25 +1,29 @@
-const express = require('express');
-const Blog = require('../models/blog');
+const express = require('express')
+const Blog = require('../models/blog')
 
-const blogsRouter = express.Router();
+const blogsRouter = express.Router()
 
 blogsRouter.get('/', async (req, res) => {
-  try {
-    const blogs = await Blog.find({});
-    res.json(blogs);
-  } catch (error) {
-    res.status(500).json({ error: 'Something went wrong' });
-  }
-});
+    const blogs = await Blog.find({})
+    res.json(blogs)
+})
 
 blogsRouter.post('/', async (req, res) => {
-  try {
-    const blog = new Blog(req.body);
-    const savedBlog = await blog.save();
-    res.status(201).json(savedBlog);
-  } catch (error) {
-    res.status(400).json({ error: 'Failed to save blog' });
-  }
-});
+    const { title, url, author, likes } = req.body
 
-module.exports = blogsRouter;
+    if (!title || !url) {
+        return res.status(400).json({ error: 'Title and URL are required' })
+    }
+
+    const blog = new Blog({
+        title,
+        author,
+        url,
+        likes: likes || 0,
+    })
+
+    const savedBlog = await blog.save()
+    res.status(201).json(savedBlog)
+})
+
+module.exports = blogsRouter
